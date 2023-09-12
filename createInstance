@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('AWS_Credentials').AWS_ACCESS_KEY_ID
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_Credentials').AWS_SECRET_ACCESS_KEY
+        AWS_DEFAULT_REGION    = 'ap-south-1' 
+        INSTANCE_TYPE         = 't2.micro' 
+        AMI_ID                = 'ami-123' 
+        INSTANCE_NAME        = 'MyEC2Instance' 
+    }
+
+    stages {
+        stage('Create EC2 Instance') {
+            steps {
+                script {
+                    sh "aws ec2 run-instances --image-id ${AMI_ID} --instance-type ${INSTANCE_TYPE} --count 1 --key-name MyKeyPair --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=${INSTANCE_NAME}}]'"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "EC2 instance created successfully."
+        }
+        failure {
+            echo "Failed to create EC2 instance."
+        }
+    }
+}
+
